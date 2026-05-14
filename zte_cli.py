@@ -453,9 +453,22 @@ def cmd_info(modem, args):
 def cmd_firmware(modem, args):
     """Check firmware version."""
     fw = modem.get_firmware_info()
+    # Also try init_data and device_info for version info
+    init = modem.get_init_data()
+    info = modem.get_device_info() if modem.token else {}
+
+    version = (fw.get("fake_version")
+               or fw.get("real_fwversion")
+               or init.get("fake_version")
+               or info.get("fake_version")
+               or "?")
+    real_version = fw.get("real_fwversion") or version
+
     print_table("Firmware", [
-        ("Current", fw.get("fake_version", fw.get("real_fwversion", "?"))),
-        ("Real", fw.get("real_fwversion", "?")),
+        ("Current", version),
+        ("Real", real_version),
+        ("Hardware", init.get("hwversion", info.get("hwversion", "?"))),
+        ("Model", init.get("board_type", info.get("board_type", "?"))),
         ("Update Available", "Yes" if fw.get("ver") else "No"),
     ])
 
